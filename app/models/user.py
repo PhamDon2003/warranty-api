@@ -20,3 +20,4 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
 
     dealer: Mapped[Optional["Dealer"]] = relationship("Dealer", back_populates="users")
+

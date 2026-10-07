@@ -20,3 +20,4 @@ class Dealer(Base):
 
     users: Mapped[List["User"]] = relationship("User", back_populates="dealer")
     serials: Mapped[List["Serial"]] = relationship("Serial", back_populates="dealer")
+

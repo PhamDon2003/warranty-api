@@ -27,3 +27,4 @@ class Serial(Base):
     product: Mapped["Product"] = relationship("Product", back_populates="serials")
     dealer: Mapped[Optional["Dealer"]] = relationship("Dealer", back_populates="serials")
     customer: Mapped[Optional["Customer"]] = relationship("Customer", back_populates="serials")
+

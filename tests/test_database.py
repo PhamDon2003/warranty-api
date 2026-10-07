@@ -79,3 +79,4 @@ def test_unique_user_email_constraint(db_session: Session) -> None:
     with pytest.raises(IntegrityError):
         db_session.commit()
     db_session.rollback()
+

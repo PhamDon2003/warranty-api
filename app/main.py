@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from app.routers import auth
 
 app = FastAPI(
     title="Warranty API",
@@ -6,8 +7,9 @@ app = FastAPI(
     version="1.0.0",
 )
 
+app.include_router(auth.router)
+
 
 @app.get("/health", tags=["Health"])
 def health_check() -> dict[str, str]:
     return {"status": "ok"}
-
