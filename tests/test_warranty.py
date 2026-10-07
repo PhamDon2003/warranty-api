@@ -95,3 +95,10 @@ def test_warranty_lookup_public_cases(client: TestClient, db_session: Session) -
         assert key not in data_active
         assert key not in data_expired
 
+
+def test_warranty_not_found(client: TestClient) -> None:
+    res = client.get("/warranty/DOES-NOT-EXIST-AT-ALL")
+    assert res.status_code == 404
+    assert res.json() == {"detail": "Serial not found"}
+
+

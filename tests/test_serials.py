@@ -258,3 +258,34 @@ def test_dealer_scoping_and_cross_dealer_permissions(
     assert res_act_b.status_code == 200
     assert res_act_b.json()["status"] == "activated"
 
+
+def test_ship_and_activate_nonexistent_entities(client: TestClient, serial_fixture: dict) -> None:
+    admin_hdr = serial_fixture["admin_hdr"]
+    prod_id = serial_fixture["product_id"]
+
+    client.post("/serials", json={"product_id": prod_id, "serial_no": "ERR-SN-01"}, headers=admin_hdr)
+
+    # Ship to non-existent dealer -> 404
+    res_bad_dealer = client.post(
+        "/serials/ERR-SN-01/ship", json={"dealer_id": 999999}, headers=admin_hdr
+    )
+    assert res_bad_dealer.status_code == 404
+    assert "Dealer not found" in res_bad_dealer.json()["detail"]
+
+    # Ship properly
+    client.post(
+        "/serials/ERR-SN-01/ship",
+        json={"dealer_id": serial_fixture["dealer_a_id"]},
+        headers=admin_hdr,
+    )
+
+    # Activate with non-existent customer -> 404
+    res_bad_cust = client.post(
+        "/serials/ERR-SN-01/activate",
+        json={"customer_id": 999999},
+        headers=admin_hdr,
+    )
+    assert res_bad_cust.status_code == 404
+    assert "Customer not found" in res_bad_cust.json()["detail"]
+
+
