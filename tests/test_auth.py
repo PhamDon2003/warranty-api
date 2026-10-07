@@ -141,3 +141,4 @@ def test_role_permissions(client: TestClient, seed_users: dict[str, User]) -> No
     )
     assert res_admin_ok.status_code == 200
     assert res_admin_ok.json()["role"] == "admin"
+

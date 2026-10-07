@@ -71,3 +71,4 @@ def require_dealer_or_admin(current_user: Annotated[User, Depends(get_current_us
             detail="Forbidden: Insufficient permissions",
         )
     return current_user
+

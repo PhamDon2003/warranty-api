@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth
+from app.routers import auth, customers, dealers, products
 
 app = FastAPI(
     title="Warranty API",
@@ -8,6 +8,9 @@ app = FastAPI(
 )
 
 app.include_router(auth.router)
+app.include_router(products.router)
+app.include_router(dealers.router)
+app.include_router(customers.router)
 
 
 @app.get("/health", tags=["Health"])
