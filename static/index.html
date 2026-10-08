@@ -292,37 +292,116 @@
     </div>
   </div>
 
-  <!-- MODAL: ACTIVATE SERIAL -->
+  <!-- MODAL: ACTIVATE SERIAL WITH 2-STEP CONFIRMATION -->
   <div id="modal-activate" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 border border-slate-100 relative">
       <button onclick="closeActivateModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
         <i class="fa-solid fa-xmark"></i>
       </button>
-      <div class="text-center mb-5">
-        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">
-          <i class="fa-solid fa-certificate"></i>
+
+      <!-- Step Indicator -->
+      <div class="flex items-center justify-center space-x-3 mb-5">
+        <div id="act-step-badge-1" class="flex items-center space-x-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+          <span class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">1</span>
+          <span>Chọn Khách Hàng</span>
         </div>
-        <h3 class="text-xl font-bold text-slate-900">Kích Hoạt Bảo Hành</h3>
-        <p class="text-xs text-slate-500 mt-1">Serial: <span id="act-modal-serial" class="font-mono font-bold text-indigo-600"></span></p>
+        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+        <div id="act-step-badge-2" class="flex items-center space-x-1.5 text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+          <span class="w-4 h-4 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center text-[10px]">2</span>
+          <span>Xác Nhận An Toàn</span>
+        </div>
       </div>
 
-      <form onsubmit="handleActivate(event)" class="space-y-4">
-        <input type="hidden" id="act-serial-input">
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Chọn Khách Hàng</label>
-          <select id="act-customer-select" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <!-- Dynamic customers -->
-          </select>
+      <!-- STEP 1: FORM SELECTION -->
+      <div id="act-step-1">
+        <div class="text-center mb-5">
+          <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+            <i class="fa-solid fa-certificate"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900">Kích Hoạt Bảo Hành</h3>
+          <p class="text-xs text-slate-500 mt-1">Thiết bị Serial: <span id="act-modal-serial" class="font-mono font-bold text-indigo-600"></span></p>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ngày Kích Hoạt (Mặc định hôm nay)</label>
-          <input type="date" id="act-date-input" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+        <div class="space-y-4">
+          <input type="hidden" id="act-serial-input">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. Chọn Khách Hàng Sở Hữu *</label>
+            <select id="act-customer-select" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <!-- Dynamic customers -->
+            </select>
+            <span class="text-[11px] text-slate-400 mt-1 block">Khách hàng sẽ đứng tên hồ sơ bảo hành chính hãng.</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">2. Ngày Kích Hoạt Thực Tế *</label>
+            <input type="date" id="act-date-input" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <span class="text-[11px] text-slate-400 mt-1 block">Mặc định là ngày hôm nay. Không được chọn ngày ở tương lai.</span>
+          </div>
+
+          <div id="act-error-step1" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
+
+          <button type="button" onclick="goToActivateStep2()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center space-x-1.5">
+            <span>Tiếp tục kiểm tra thông tin</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
         </div>
-        <div id="act-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
-        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm transition shadow">
-          Xác nhận kích hoạt
-        </button>
-      </form>
+      </div>
+
+      <!-- STEP 2: SUMMARY & DANGEROUS ACTION WARNING -->
+      <div id="act-step-2" class="hidden">
+        <div class="text-center mb-4">
+          <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900">Xác Nhận Kích Hoạt</h3>
+          <p class="text-xs text-slate-500 mt-1">Vui lòng rà soát kỹ các thông tin trước khi lưu</p>
+        </div>
+
+        <!-- Warning Alert Box -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-3.5 rounded-r-lg mb-4 text-xs text-amber-800">
+          <p class="font-bold mb-0.5"><i class="fa-solid fa-circle-exclamation mr-1"></i>HÀNH ĐỘNG KHÔNG THỂ HOÀN TÁC!</p>
+          <p class="text-slate-600">Theo quy tắc quản lý thiết bị, trạng thái bảo hành chỉ đi một chiều. Sau khi kích hoạt sẽ <b>không thể hủy hoặc chuyển ngược lại</b> trạng thái chưa bán.</p>
+        </div>
+
+        <!-- Summary Table -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-2.5 mb-4">
+          <div class="flex justify-between pb-2 border-b border-slate-200">
+            <span class="text-slate-500">Mã Serial thiết bị:</span>
+            <span id="summary-serial" class="font-mono font-bold text-indigo-700 text-sm"></span>
+          </div>
+          <div class="flex justify-between pb-2 border-b border-slate-200">
+            <span class="text-slate-500">Khách hàng đăng ký:</span>
+            <span id="summary-customer" class="font-semibold text-slate-800"></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Ngày bắt đầu bảo hành:</span>
+            <span id="summary-date" class="font-semibold text-slate-800"></span>
+          </div>
+        </div>
+
+        <!-- Mandatory Confirmation Checkbox -->
+        <div class="mb-5 bg-white border border-slate-300 p-3 rounded-lg">
+          <label class="flex items-start space-x-2.5 cursor-pointer">
+            <input type="checkbox" id="act-confirm-checkbox" onchange="toggleConfirmButton()" class="mt-0.5 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-slate-300">
+            <span class="text-xs text-slate-700 leading-snug">
+              Tôi xác nhận đã bàn giao máy cho khách và đồng ý kích hoạt thời hạn bảo hành chính hãng từ ngày đã chọn.
+            </span>
+          </label>
+        </div>
+
+        <div id="act-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200 mb-3"></div>
+
+        <!-- Action Buttons -->
+        <div class="flex space-x-2">
+          <button type="button" onclick="goToActivateStep1()" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-lg text-sm transition">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Quay lại
+          </button>
+          <button type="button" id="btn-final-activate" onclick="submitFinalActivate()" disabled class="w-2/3 bg-slate-300 text-slate-500 cursor-not-allowed font-semibold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-shield-check"></i>
+            <span>Chính thức kích hoạt</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -970,10 +1049,102 @@
     function openActivateModal(serialNo) {
       document.getElementById('act-modal-serial').textContent = serialNo;
       document.getElementById('act-serial-input').value = serialNo;
+      const today = new Date().toISOString().substring(0, 10);
+      const dateInput = document.getElementById('act-date-input');
+      if (dateInput) {
+        dateInput.value = today;
+        dateInput.max = today;
+      }
+      goToActivateStep1();
       fetchCustomersList();
       document.getElementById('modal-activate').classList.remove('hidden');
     }
-    function closeActivateModal() { document.getElementById('modal-activate').classList.add('hidden'); document.getElementById('act-error').classList.add('hidden'); }
+
+    function closeActivateModal() {
+      document.getElementById('modal-activate').classList.add('hidden');
+      document.getElementById('act-error').classList.add('hidden');
+      document.getElementById('act-error-step1').classList.add('hidden');
+    }
+
+    function goToActivateStep1() {
+      document.getElementById('act-step-1').classList.remove('hidden');
+      document.getElementById('act-step-2').classList.add('hidden');
+      document.getElementById('act-error-step1').classList.add('hidden');
+      document.getElementById('act-error').classList.add('hidden');
+
+      const b1 = document.getElementById('act-step-badge-1');
+      b1.className = "flex items-center space-x-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200";
+      b1.innerHTML = '<span class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">1</span><span>Chọn Khách Hàng</span>';
+
+      const b2 = document.getElementById('act-step-badge-2');
+      b2.className = "flex items-center space-x-1.5 text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full border border-slate-200";
+      b2.innerHTML = '<span class="w-4 h-4 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center text-[10px]">2</span><span>Xác Nhận An Toàn</span>';
+
+      const chk = document.getElementById('act-confirm-checkbox');
+      if (chk) chk.checked = false;
+      toggleConfirmButton();
+    }
+
+    function goToActivateStep2() {
+      const errBox = document.getElementById('act-error-step1');
+      errBox.classList.add('hidden');
+
+      const custSelect = document.getElementById('act-customer-select');
+      if (!custSelect.value) {
+        errBox.textContent = 'Vui lòng chọn hoặc thêm khách hàng sở hữu!';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      const dateInput = document.getElementById('act-date-input');
+      if (!dateInput.value) {
+        errBox.textContent = 'Vui lòng chọn ngày kích hoạt!';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      const todayStr = new Date().toISOString().substring(0, 10);
+      if (dateInput.value > todayStr) {
+        errBox.textContent = 'Ngày kích hoạt không thể lớn hơn ngày hiện tại!';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      const serialNo = document.getElementById('act-serial-input').value;
+      const custText = custSelect.options[custSelect.selectedIndex].text;
+
+      document.getElementById('summary-serial').textContent = serialNo;
+      document.getElementById('summary-customer').textContent = custText;
+      document.getElementById('summary-date').textContent = formatDate(dateInput.value);
+
+      document.getElementById('act-step-1').classList.add('hidden');
+      document.getElementById('act-step-2').classList.remove('hidden');
+
+      const b1 = document.getElementById('act-step-badge-1');
+      b1.className = "flex items-center space-x-1.5 text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full border border-slate-200";
+      b1.innerHTML = '<span class="w-4 h-4 rounded-full bg-slate-300 text-slate-600 flex items-center justify-center text-[10px]">1</span><span>Chọn Khách Hàng</span>';
+
+      const b2 = document.getElementById('act-step-badge-2');
+      b2.className = "flex items-center space-x-1.5 text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-300";
+      b2.innerHTML = '<span class="w-4 h-4 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]">2</span><span>Xác Nhận An Toàn</span>';
+
+      const chk = document.getElementById('act-confirm-checkbox');
+      if (chk) chk.checked = false;
+      toggleConfirmButton();
+    }
+
+    function toggleConfirmButton() {
+      const chk = document.getElementById('act-confirm-checkbox');
+      const btn = document.getElementById('btn-final-activate');
+      if (!chk || !btn) return;
+      if (chk.checked) {
+        btn.disabled = false;
+        btn.className = "w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer font-semibold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center space-x-1.5";
+      } else {
+        btn.disabled = true;
+        btn.className = "w-2/3 bg-slate-300 text-slate-500 cursor-not-allowed font-semibold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center space-x-1.5";
+      }
+    }
 
     function openShipModal(serialNo) {
       document.getElementById('ship-modal-serial').textContent = serialNo;
@@ -1076,13 +1247,19 @@
       }
     }
 
-    async function handleActivate(e) {
-      e.preventDefault();
-      const serialNo = document.getElementById('act-modal-serial').textContent;
+    async function submitFinalActivate() {
+      const chk = document.getElementById('act-confirm-checkbox');
+      if (!chk || !chk.checked) return;
+
+      const serialNo = document.getElementById('act-serial-input').value;
       const customerId = parseInt(document.getElementById('act-customer-select').value);
       const dateVal = document.getElementById('act-date-input').value || null;
       const errBox = document.getElementById('act-error');
+      const btn = document.getElementById('btn-final-activate');
       errBox.classList.add('hidden');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang kích hoạt...';
 
       try {
         const res = await fetch(`/serials/${encodeURIComponent(serialNo)}/activate`, {
@@ -1097,15 +1274,19 @@
         if (!res.ok) {
           errBox.textContent = data.detail || 'Kích hoạt thất bại';
           errBox.classList.remove('hidden');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-shield-check mr-1"></i> Chính thức kích hoạt';
           return;
         }
         closeActivateModal();
-        showToast(`Kích hoạt thành công serial ${serialNo}`);
+        showToast(`Kích hoạt thành công bảo hành serial ${serialNo}`);
         if (currentTab === 'dealer') loadDealerData();
         if (currentTab === 'admin') loadAdminData();
       } catch (e) {
-        errBox.textContent = 'Lỗi mạng';
+        errBox.textContent = 'Lỗi kết nối máy chủ';
         errBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-shield-check mr-1"></i> Chính thức kích hoạt';
       }
     }
 
