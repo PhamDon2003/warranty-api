@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WarrantyHub - Hệ Thống Quản Lý & Tra Cứu Bảo Hành</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    [v-cloak] { display: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- TOP NAVBAR -->
+  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('lookup')">
+        <div class="bg-white text-indigo-600 p-2 rounded-lg font-bold shadow">
+          <i class="fa-solid fa-shield-halved text-xl"></i>
+        </div>
+        <div>
+          <span class="text-xl font-bold tracking-tight">Warranty<span class="text-indigo-200">Hub</span></span>
+          <span class="block text-xs text-indigo-200">Hệ thống bảo hành điện tử chính hãng</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex space-x-2">
+        <button onclick="switchTab('lookup')" id="nav-lookup" class="nav-btn px-4 py-2 rounded-md font-medium text-sm transition bg-indigo-700 text-white">
+          <i class="fa-solid fa-magnifying-glass mr-1.5"></i> Tra cứu bảo hành
+        </button>
+        <button onclick="switchTab('dealer')" id="nav-dealer" class="nav-btn px-4 py-2 rounded-md font-medium text-sm transition hover:bg-indigo-500 text-indigo-100">
+          <i class="fa-solid fa-store mr-1.5"></i> Cổng Đại lý
+        </button>
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn px-4 py-2 rounded-md font-medium text-sm transition hover:bg-indigo-500 text-indigo-100">
+          <i class="fa-solid fa-user-shield mr-1.5"></i> Quản trị (Admin)
+        </button>
+      </nav>
+
+      <!-- Auth Controls -->
+      <div class="flex items-center space-x-3">
+        <div id="user-info" class="hidden text-right">
+          <span id="user-email-badge" class="block text-xs font-semibold text-white"></span>
+          <span id="user-role-badge" class="inline-block bg-indigo-800 text-indigo-200 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase"></span>
+        </div>
+        <button id="btn-login-modal" onclick="openLoginModal()" class="bg-white text-indigo-600 hover:bg-indigo-50 px-4 py-1.5 rounded-md font-semibold text-sm shadow transition">
+          <i class="fa-solid fa-right-to-bracket mr-1"></i> Đăng nhập
+        </button>
+        <button id="btn-logout" onclick="logout()" class="hidden bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-md font-semibold text-sm shadow transition">
+          <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Đăng xuất
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- TAB 1: TRA CỨU BẢO HÀNH (PUBLIC) -->
+    <section id="tab-lookup" class="tab-content">
+      <div class="max-w-3xl mx-auto text-center mt-6 mb-10">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Tra Cứu Thông Tin Bảo Hành
+        </h1>
+        <p class="mt-3 text-slate-600 text-base">
+          Nhập số serial thiết bị của bạn để kiểm tra tình trạng kích hoạt và thời hạn bảo hành chính hãng.
+        </p>
+
+        <!-- Search Box -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-3 shadow-lg rounded-xl p-2 bg-white border border-slate-200">
+          <div class="relative flex-grow">
+            <i class="fa-solid fa-barcode absolute left-4 top-3.5 text-slate-400 text-lg"></i>
+            <input type="text" id="input-serial-lookup" placeholder="Nhập số Serial (ví dụ: PROD-IP15, BK-0001)..." 
+              class="w-full pl-12 pr-4 py-3 text-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-base uppercase font-semibold">
+          </div>
+          <button onclick="handleLookup()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-lg transition flex items-center justify-center gap-2 shadow">
+            <i class="fa-solid fa-search"></i> Tra cứu
+          </button>
+        </div>
+
+        <!-- Sample Quick Buttons -->
+        <div class="mt-4 flex flex-wrap justify-center items-center gap-2 text-xs text-slate-500">
+          <span>Serial gợi ý test:</span>
+          <button onclick="quickLookup('SN-ACTIVE-VALID')" class="bg-slate-200 hover:bg-slate-300 px-2.5 py-1 rounded font-mono">SN-ACTIVE-VALID</button>
+          <button onclick="quickLookup('BK-0001')" class="bg-slate-200 hover:bg-slate-300 px-2.5 py-1 rounded font-mono">BK-0001</button>
+          <button onclick="quickLookup('LIFE-01')" class="bg-slate-200 hover:bg-slate-300 px-2.5 py-1 rounded font-mono">LIFE-01</button>
+        </div>
+      </div>
+
+      <!-- LOOKUP RESULT CARD -->
+      <div id="lookup-result" class="hidden max-w-2xl mx-auto transition-all"></div>
+    </section>
+
+    <!-- TAB 2: CỔNG ĐẠI LÝ (DEALER PORTAL) -->
+    <section id="tab-dealer" class="tab-content hidden">
+      <div id="dealer-guard" class="bg-amber-50 border border-amber-200 text-amber-800 p-6 rounded-xl text-center max-w-xl mx-auto my-12">
+        <i class="fa-solid fa-lock text-4xl text-amber-500 mb-3"></i>
+        <h3 class="text-lg font-bold">Yêu cầu quyền Đại lý (Dealer)</h3>
+        <p class="text-sm mt-1">Vui lòng đăng nhập với tài khoản Đại lý để xem danh sách serial và kích hoạt cho khách hàng.</p>
+        <button onclick="quickLoginAs('dealer')" class="mt-4 bg-amber-600 hover:bg-amber-700 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
+          <i class="fa-solid fa-bolt mr-1"></i> Đăng nhập nhanh tài khoản Đại lý
+        </button>
+      </div>
+
+      <div id="dealer-content" class="hidden space-y-8">
+        <!-- Dashboard Header -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Cổng Dành Cho Đại Lý</span>
+            <h2 class="text-2xl font-bold text-slate-900 mt-1">Kích Hoạt & Quản Lý Thiết Bị</h2>
+            <p class="text-slate-500 text-sm mt-0.5" id="dealer-welcome-text"></p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="loadDealerData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition">
+              <i class="fa-solid fa-rotate-right mr-1"></i> Làm mới dữ liệu
+            </button>
+            <button onclick="openCreateCustomerModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow">
+              <i class="fa-solid fa-user-plus mr-1"></i> Thêm khách hàng mới
+            </button>
+          </div>
+        </div>
+
+        <!-- Serials Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-boxes-stacked mr-2 text-indigo-600"></i>Danh sách Serial thuộc Đại lý</h3>
+            <span id="dealer-serial-count" class="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1 rounded-full"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+                <tr>
+                  <th class="p-4">Số Serial</th>
+                  <th class="p-4">Mã Sản Phẩm</th>
+                  <th class="p-4">Trạng Thái</th>
+                  <th class="p-4">Ngày Kích Hoạt</th>
+                  <th class="p-4">Hạn Bảo Hành</th>
+                  <th class="p-4 text-right">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="dealer-serial-table-body" class="divide-y divide-slate-100">
+                <!-- Dynamic Content -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: CỔNG QUẢN TRỊ (ADMIN PORTAL) -->
+    <section id="tab-admin" class="tab-content hidden">
+      <div id="admin-guard" class="bg-amber-50 border border-amber-200 text-amber-800 p-6 rounded-xl text-center max-w-xl mx-auto my-12">
+        <i class="fa-solid fa-shield-halved text-4xl text-rose-500 mb-3"></i>
+        <h3 class="text-lg font-bold">Yêu cầu quyền Quản trị viên (Admin)</h3>
+        <p class="text-sm mt-1">Vui lòng đăng nhập với tài khoản Admin để truy cập toàn bộ chức năng quản trị hệ thống.</p>
+        <button onclick="quickLoginAs('admin')" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
+          <i class="fa-solid fa-bolt mr-1"></i> Đăng nhập nhanh tài khoản Admin
+        </button>
+      </div>
+
+      <div id="admin-content" class="hidden space-y-8">
+        <!-- Admin Header -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <span class="text-xs font-bold text-rose-600 uppercase tracking-wider">Hệ Thống Quản Trị Trung Tâm</span>
+            <h2 class="text-2xl font-bold text-slate-900 mt-1">Quản Trị Vòng Đời Thiết Bị & Bảo Hành</h2>
+            <p class="text-slate-500 text-sm mt-0.5">Quản lý sản phẩm, đại lý, tạo serial đơn lẻ & hàng loạt, xuất kho thiết bị.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="openCreateProductModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition shadow">
+              <i class="fa-solid fa-plus mr-1"></i> Thêm Sản phẩm
+            </button>
+            <button onclick="openCreateDealerModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition shadow">
+              <i class="fa-solid fa-shop mr-1"></i> Thêm Đại lý
+            </button>
+            <button onclick="openCreateSerialModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition shadow">
+              <i class="fa-solid fa-barcode mr-1"></i> Tạo Serial
+            </button>
+            <button onclick="openBulkSerialModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition shadow">
+              <i class="fa-solid fa-layer-group mr-1"></i> Tạo Hàng Loạt (Bulk)
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 Cards Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center text-slate-500 mb-2">
+              <span class="text-sm font-semibold uppercase">Sản Phẩm Danh Mục</span>
+              <i class="fa-solid fa-laptop text-indigo-500 text-xl"></i>
+            </div>
+            <div class="text-3xl font-extrabold text-slate-900" id="stat-products-count">...</div>
+          </div>
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center text-slate-500 mb-2">
+              <span class="text-sm font-semibold uppercase">Hệ Thống Đại Lý</span>
+              <i class="fa-solid fa-building text-blue-500 text-xl"></i>
+            </div>
+            <div class="text-3xl font-extrabold text-slate-900" id="stat-dealers-count">...</div>
+          </div>
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center text-slate-500 mb-2">
+              <span class="text-sm font-semibold uppercase">Tổng Số Thiết Bị (Serials)</span>
+              <i class="fa-solid fa-barcode text-emerald-500 text-xl"></i>
+            </div>
+            <div class="text-3xl font-extrabold text-slate-900" id="stat-serials-count">...</div>
+          </div>
+        </div>
+
+        <!-- Serials Master Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-slate-50">
+            <h3 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-list-check mr-2 text-indigo-600"></i>Toàn Bộ Serial Trong Hệ Thống</h3>
+            <div class="flex gap-2">
+              <select id="admin-filter-status" onchange="loadAdminData()" class="border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
+                <option value="">Tất cả trạng thái</option>
+                <option value="in_stock">Trong kho (in_stock)</option>
+                <option value="shipped">Đã xuất đại lý (shipped)</option>
+                <option value="activated">Đã kích hoạt (activated)</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+                <tr>
+                  <th class="p-4">Số Serial</th>
+                  <th class="p-4">Mã SP</th>
+                  <th class="p-4">Trạng Thái</th>
+                  <th class="p-4">Đại Lý Hiện Tại</th>
+                  <th class="p-4">Ngày Xuất Kho</th>
+                  <th class="p-4">Ngày Kích Hoạt</th>
+                  <th class="p-4 text-right">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="admin-serial-table-body" class="divide-y divide-slate-100">
+                <!-- Dynamic Content -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: LOGIN -->
+  <div id="modal-login" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+      <button onclick="closeLoginModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">
+          <i class="fa-solid fa-user-lock"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900">Đăng Nhập Hệ Thống</h3>
+        <p class="text-xs text-slate-500 mt-1">Nhập tài khoản Admin hoặc Đại lý để tiếp tục</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email</label>
+          <input type="email" id="login-email" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu</label>
+          <input type="password" id="login-password" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div id="login-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition shadow">
+          Đăng nhập
+        </button>
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+        <span class="text-xs text-slate-400 block mb-2 font-medium">Hoặc đăng nhập nhanh để thử nghiệm:</span>
+        <div class="flex gap-2">
+          <button onclick="quickLoginAs('admin')" class="flex-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 text-slate-700 text-xs font-semibold py-2 rounded-lg transition">
+            <i class="fa-solid fa-crown mr-1 text-amber-500"></i> Admin
+          </button>
+          <button onclick="quickLoginAs('dealer')" class="flex-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 text-slate-700 text-xs font-semibold py-2 rounded-lg transition">
+            <i class="fa-solid fa-store mr-1 text-emerald-500"></i> Đại lý
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ACTIVATE SERIAL -->
+  <div id="modal-activate" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+      <button onclick="closeActivateModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+          <i class="fa-solid fa-certificate"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900">Kích Hoạt Bảo Hành</h3>
+        <p class="text-xs text-slate-500 mt-1">Serial: <span id="act-modal-serial" class="font-mono font-bold text-indigo-600"></span></p>
+      </div>
+
+      <form onsubmit="handleActivate(event)" class="space-y-4">
+        <input type="hidden" id="act-serial-input">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Chọn Khách Hàng</label>
+          <select id="act-customer-select" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <!-- Dynamic customers -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ngày Kích Hoạt (Mặc định hôm nay)</label>
+          <input type="date" id="act-date-input" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div id="act-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm transition shadow">
+          Xác nhận kích hoạt
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SHIP SERIAL (ADMIN ONLY) -->
+  <div id="modal-ship" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+      <button onclick="closeShipModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+          <i class="fa-solid fa-truck-fast"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900">Xuất Kho Cho Đại Lý</h3>
+        <p class="text-xs text-slate-500 mt-1">Serial: <span id="ship-modal-serial" class="font-mono font-bold text-indigo-600"></span></p>
+      </div>
+
+      <form onsubmit="handleShip(event)" class="space-y-4">
+        <input type="hidden" id="ship-serial-input">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Chọn Đại Lý Nhận Hàng</label>
+          <select id="ship-dealer-select" required class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <!-- Dynamic dealers -->
+          </select>
+        </div>
+        <div id="ship-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition shadow">
+          Xác nhận xuất kho
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE CUSTOMER -->
+  <div id="modal-customer" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+      <button onclick="closeCreateCustomerModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-center mb-5">
+        <h3 class="text-xl font-bold text-slate-900">Thêm Khách Hàng Mới</h3>
+      </div>
+      <form onsubmit="handleCreateCustomer(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tên khách hàng *</label>
+          <input type="text" id="cust-name" required class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số điện thoại *</label>
+          <input type="text" id="cust-phone" required class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email</label>
+          <input type="email" id="cust-email" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Địa chỉ</label>
+          <input type="text" id="cust-address" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div id="cust-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2 rounded-lg"></div>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+          Lưu khách hàng
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE PRODUCT (ADMIN) -->
+  <div id="modal-product" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+      <button onclick="closeCreateProductModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-center mb-5">
+        <h3 class="text-xl font-bold text-slate-900">Thêm Sản Phẩm Mới</h3>
+      </div>
+      <form onsubmit="handleCreateProduct(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mã sản phẩm (Code) *</label>
+          <input type="text" id="prod-code" required placeholder="VD: PROD-IP16" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm uppercase">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tên sản phẩm *</label>
+          <input type="text" id="prod-name" required placeholder="VD: iPhone 16 Pro Max 256GB" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số tháng bảo hành *</label>
+          <input type="number" id="prod-months" required min="1" value="12" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div id="prod-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2 rounded-lg"></div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+          Lưu sản phẩm
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE DEALER (ADMIN) -->
+  <div id="modal-dealer" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+      <button onclick="closeCreateDealerModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-center mb-5">
+        <h3 class="text-xl font-bold text-slate-900">Thêm Đại Lý Mới</h3>
+      </div>
+      <form onsubmit="handleCreateDealer(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tên đại lý *</label>
+          <input type="text" id="dealer-name" required placeholder="VD: Đại lý Hải Phòng" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số điện thoại</label>
+          <input type="text" id="dealer-phone" placeholder="0225123456" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Địa chỉ</label>
+          <input type="text" id="dealer-address" placeholder="Lê Hồng Phong, Hải Phòng" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div id="dealer-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2 rounded-lg"></div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+          Lưu đại lý
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE SINGLE SERIAL (ADMIN) -->
+  <div id="modal-serial" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+      <button onclick="closeCreateSerialModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-center mb-5">
+        <h3 class="text-xl font-bold text-slate-900">Tạo 1 Serial Thiết Bị Mới</h3>
+        <p class="text-xs text-slate-500 mt-1">Trạng thái khởi tạo: trong kho (in_stock)</p>
+      </div>
+      <form onsubmit="handleCreateSerial(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Chọn Sản Phẩm *</label>
+          <select id="single-serial-product" required class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số Serial (Duy nhất) *</label>
+          <input type="text" id="single-serial-no" required placeholder="VD: SN-VN-2026-001" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm uppercase font-mono">
+        </div>
+        <div id="serial-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2 rounded-lg"></div>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+          Tạo Serial
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: BULK CREATE SERIALS (ADMIN) -->
+  <div id="modal-bulk" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 relative">
+      <button onclick="closeBulkSerialModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="text-center mb-5">
+        <h3 class="text-xl font-bold text-slate-900">Tạo Hàng Loạt Serials (Bulk)</h3>
+        <p class="text-xs text-slate-500 mt-1">Tạo theo tiền tố và dải số liên tiếp (tối đa 1000 serial)</p>
+      </div>
+      <form onsubmit="handleBulkSerial(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Chọn Sản Phẩm *</label>
+          <select id="bulk-serial-product" required class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tiền tố (Prefix) *</label>
+          <input type="text" id="bulk-prefix" required placeholder="VD: IP15-VN-" value="IP15-VN-" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-mono uppercase">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số bắt đầu *</label>
+            <input type="number" id="bulk-start" required min="1" value="1" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số kết thúc *</label>
+            <input type="number" id="bulk-end" required min="1" value="10" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Độ dài đệm số 0 (Zero padding)</label>
+          <input type="number" id="bulk-pad" min="0" max="8" value="4" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm">
+          <span class="text-[11px] text-slate-400">Ví dụ đệm 4 số: 0001, 0002...</span>
+        </div>
+        <div id="bulk-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2 rounded-lg"></div>
+        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+          Tạo hàng loạt
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="hidden fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl z-50 flex items-center space-x-2 text-sm">
+    <span id="toast-icon"></span>
+    <span id="toast-message"></span>
+  </div>
+
+  <script>
+    // State
+    let authToken = localStorage.getItem('warranty_token') || null;
+    let currentUser = null;
+    let currentTab = 'lookup';
+
+    // Products & Dealers cache
+    let cachedProducts = [];
+    let cachedDealers = [];
+    let cachedCustomers = [];
+
+    // Init
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (authToken) {
+        await fetchCurrentUser();
+      }
+      updateAuthUI();
+      // Default date for activation
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('act-date-input').value = todayStr;
+      document.getElementById('act-date-input').max = todayStr;
+    });
+
+    // Toast
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toast-message');
+      const icon = document.getElementById('toast-icon');
+      msg.textContent = message;
+      if (type === 'success') {
+        toast.className = 'fixed bottom-5 right-5 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl z-50 flex items-center space-x-2 text-sm';
+        icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+      } else {
+        toast.className = 'fixed bottom-5 right-5 bg-rose-600 text-white px-5 py-3 rounded-xl shadow-2xl z-50 flex items-center space-x-2 text-sm';
+        icon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+      }
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    // Switch Tabs
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('bg-indigo-700', 'text-white');
+        el.classList.add('text-indigo-100', 'hover:bg-indigo-500');
+      });
+
+      const activeNav = document.getElementById(`nav-${tab}`);
+      if (activeNav) {
+        activeNav.classList.remove('text-indigo-100', 'hover:bg-indigo-500');
+        activeNav.classList.add('bg-indigo-700', 'text-white');
+      }
+
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+
+      if (tab === 'dealer') {
+        checkDealerAccess();
+      } else if (tab === 'admin') {
+        checkAdminAccess();
+      }
+    }
+
+    // Fetch Current User
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch('/auth/me', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          currentUser = await res.json();
+        } else {
+          logout();
+        }
+      } catch (e) {
+        logout();
+      }
+    }
+
+    function updateAuthUI() {
+      const userInfo = document.getElementById('user-info');
+      const btnLogin = document.getElementById('btn-login-modal');
+      const btnLogout = document.getElementById('btn-logout');
+      const emailBadge = document.getElementById('user-email-badge');
+      const roleBadge = document.getElementById('user-role-badge');
+
+      if (currentUser) {
+        userInfo.classList.remove('hidden');
+        btnLogin.classList.add('hidden');
+        btnLogout.classList.remove('hidden');
+        emailBadge.textContent = currentUser.email;
+        roleBadge.textContent = currentUser.role;
+      } else {
+        userInfo.classList.add('hidden');
+        btnLogin.classList.remove('hidden');
+        btnLogout.classList.add('hidden');
+      }
+
+      if (currentTab === 'dealer') checkDealerAccess();
+      if (currentTab === 'admin') checkAdminAccess();
+    }
+
+    function logout() {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('warranty_token');
+      updateAuthUI();
+      showToast('Đã đăng xuất khỏi hệ thống');
+    }
+
+    // TAB 1: LOOKUP
+    async function handleLookup() {
+      const serialInput = document.getElementById('input-serial-lookup');
+      const serialNo = serialInput.value.trim().toUpperCase();
+      if (!serialNo) {
+        showToast('Vui lòng nhập số serial', 'error');
+        return;
+      }
+      quickLookup(serialNo);
+    }
+
+    async function quickLookup(serialNo) {
+      document.getElementById('input-serial-lookup').value = serialNo;
+      const resContainer = document.getElementById('lookup-result');
+      resContainer.innerHTML = '<div class="text-center py-8 text-slate-500"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><p>Đang tra cứu cơ sở dữ liệu...</p></div>';
+      resContainer.classList.remove('hidden');
+
+      try {
+        const res = await fetch(`/warranty/${encodeURIComponent(serialNo)}`);
+        if (!res.ok) {
+          const err = await res.json();
+          resContainer.innerHTML = `
+            <div class="bg-white border-2 border-dashed border-rose-200 rounded-2xl p-8 text-center shadow-sm">
+              <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <h3 class="text-xl font-bold text-slate-800">Không Tìm Thấy Thiết Bị</h3>
+              <p class="text-slate-500 text-sm mt-1">Số serial <span class="font-mono font-bold text-slate-800">${serialNo}</span> không tồn tại trong hệ thống bảo hành.</p>
+              <p class="text-xs text-slate-400 mt-2">Vui lòng kiểm tra lại tem mác trên bao bì sản phẩm hoặc liên hệ đại lý nơi bạn mua hàng.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const data = await res.json();
+        renderLookupCard(data, serialNo);
+      } catch (e) {
+        showToast('Không thể kết nối tới máy chủ', 'error');
+      }
+    }
+
+    function renderLookupCard(data, serialNo) {
+      const resContainer = document.getElementById('lookup-result');
+      let statusBadge = '';
+      let banner = '';
+
+      if (data.status === 'activated') {
+        if (data.is_valid) {
+          statusBadge = '<span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold uppercase"><i class="fa-solid fa-check mr-1"></i>Đã kích hoạt</span>';
+          banner = `
+            <div class="bg-emerald-500 text-white p-4 rounded-xl flex items-center space-x-3 mb-6 shadow">
+              <i class="fa-solid fa-circle-check text-3xl"></i>
+              <div>
+                <h4 class="font-bold text-base">CÒN TRONG THỜI HẠN BẢO HÀNH CHÍNH HÃNG</h4>
+                <p class="text-xs text-emerald-100">Thiết bị đủ điều kiện tiếp nhận bảo hành chính hãng theo quy định.</p>
+              </div>
+            </div>
+          `;
+        } else {
+          statusBadge = '<span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-full text-xs font-bold uppercase"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Hết hạn bảo hành</span>';
+          banner = `
+            <div class="bg-rose-500 text-white p-4 rounded-xl flex items-center space-x-3 mb-6 shadow">
+              <i class="fa-solid fa-circle-xmark text-3xl"></i>
+              <div>
+                <h4 class="font-bold text-base">ĐÃ HẾT THỜI HẠN BẢO HÀNH MIỄN PHÍ</h4>
+                <p class="text-xs text-rose-100">Thiết bị đã quá hạn bảo hành. Khách hàng vui lòng liên hệ trung tâm để được hỗ trợ tính phí.</p>
+              </div>
+            </div>
+          `;
+        }
+      } else if (data.status === 'shipped') {
+        statusBadge = '<span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold uppercase"><i class="fa-solid fa-truck mr-1"></i>Đã xuất cho đại lý</span>';
+        banner = `
+          <div class="bg-blue-500 text-white p-4 rounded-xl flex items-center space-x-3 mb-6 shadow">
+            <i class="fa-solid fa-circle-info text-3xl"></i>
+            <div>
+              <h4 class="font-bold text-base">THIẾT BỊ CHƯA ĐƯỢC KÍCH HOẠT</h4>
+              <p class="text-xs text-blue-100">Sản phẩm đã phân phối đến đại lý. Bảo hành sẽ có hiệu lực ngay khi đại lý kích hoạt cho bạn.</p>
+            </div>
+          </div>
+        `;
+      } else {
+        statusBadge = '<span class="bg-slate-200 text-slate-800 px-3 py-1 rounded-full text-xs font-bold uppercase"><i class="fa-solid fa-warehouse mr-1"></i>Trong kho sản xuất</span>';
+        banner = `
+          <div class="bg-slate-600 text-white p-4 rounded-xl flex items-center space-x-3 mb-6 shadow">
+            <i class="fa-solid fa-box text-3xl"></i>
+            <div>
+              <h4 class="font-bold text-base">SẢN PHẨM TRONG KHO SẢN XUẤT</h4>
+              <p class="text-xs text-slate-200">Thiết bị chưa được xuất kho cho đại lý phân phối.</p>
+            </div>
+          </div>
+        `;
+      }
+
+      resContainer.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+          <div class="p-6 sm:p-8">
+            ${banner}
+
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-slate-100 gap-2">
+              <div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tên Thiết Bị</span>
+                <h3 class="text-2xl font-bold text-slate-900 mt-0.5">${data.product_name}</h3>
+              </div>
+              ${statusBadge}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span class="block text-xs font-bold text-slate-400 uppercase">Số Serial</span>
+                <span class="text-base font-mono font-bold text-indigo-700 mt-1 block">${serialNo}</span>
+              </div>
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span class="block text-xs font-bold text-slate-400 uppercase">Ngày Kích Hoạt</span>
+                <span class="text-base font-semibold text-slate-800 mt-1 block">
+                  ${data.activated_at ? formatDate(data.activated_at) : '<span class="text-slate-400 italic">Chưa kích hoạt</span>'}
+                </span>
+              </div>
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span class="block text-xs font-bold text-slate-400 uppercase">Ngày Hết Hạn BH</span>
+                <span class="text-base font-semibold text-slate-800 mt-1 block">
+                  ${data.warranty_end ? formatDate(data.warranty_end) : '<span class="text-slate-400 italic">Chưa xác định</span>'}
+                </span>
+              </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+              <span><i class="fa-solid fa-lock mr-1"></i> Bảo mật thông tin cá nhân khách hàng</span>
+              <span>Hệ thống WarrantyHub</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return dateStr;
+    }
+
+    // TAB 2: DEALER LOGIC
+    function checkDealerAccess() {
+      const guard = document.getElementById('dealer-guard');
+      const content = document.getElementById('dealer-content');
+      if (currentUser && (currentUser.role === 'dealer' || currentUser.role === 'admin')) {
+        guard.classList.add('hidden');
+        content.classList.remove('hidden');
+        document.getElementById('dealer-welcome-text').textContent = `Tài khoản: ${currentUser.email} | Quyền: ${currentUser.role.toUpperCase()}`;
+        loadDealerData();
+      } else {
+        guard.classList.remove('hidden');
+        content.classList.add('hidden');
+      }
+    }
+
+    async function loadDealerData() {
+      await fetchCustomersList();
+      try {
+        const res = await fetch('/serials?page=1&size=50', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById('dealer-serial-count').textContent = `${data.total} thiết bị`;
+        const tbody = document.getElementById('dealer-serial-table-body');
+        if (data.items.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 italic">Đại lý chưa có thiết bị nào được bàn giao</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.items.map(s => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-4 font-mono font-bold text-slate-800">${s.serial_no}</td>
+            <td class="p-4 text-slate-600">ID: ${s.product_id}</td>
+            <td class="p-4">${renderStatusTag(s.status)}</td>
+            <td class="p-4">${s.activated_at ? formatDate(s.activated_at) : '-'}</td>
+            <td class="p-4">${s.warranty_end ? formatDate(s.warranty_end) : '-'}</td>
+            <td class="p-4 text-right">
+              ${s.status === 'shipped' 
+                ? `<button onclick="openActivateModal('${s.serial_no}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow transition">
+                    <i class="fa-solid fa-bolt mr-1"></i> Kích hoạt BH
+                   </button>` 
+                : `<span class="text-xs text-slate-400"><i class="fa-solid fa-check mr-1"></i>Đã kích hoạt</span>`}
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        showToast('Không tải được danh sách serial đại lý', 'error');
+      }
+    }
+
+    // TAB 3: ADMIN LOGIC
+    function checkAdminAccess() {
+      const guard = document.getElementById('admin-guard');
+      const content = document.getElementById('admin-content');
+      if (currentUser && currentUser.role === 'admin') {
+        guard.classList.add('hidden');
+        content.classList.remove('hidden');
+        loadAdminData();
+      } else {
+        guard.classList.remove('hidden');
+        content.classList.add('hidden');
+      }
+    }
+
+    async function loadAdminData() {
+      await fetchProductsList();
+      await fetchDealersList();
+      const statusFilter = document.getElementById('admin-filter-status').value;
+      const url = statusFilter ? `/serials?status=${statusFilter}&size=50` : `/serials?size=50`;
+
+      try {
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById('stat-serials-count').textContent = data.total;
+
+        const tbody = document.getElementById('admin-serial-table-body');
+        if (data.items.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 italic">Chưa có serial nào trong hệ thống</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.items.map(s => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-4 font-mono font-bold text-slate-800">${s.serial_no}</td>
+            <td class="p-4 text-slate-600">ID: ${s.product_id}</td>
+            <td class="p-4">${renderStatusTag(s.status)}</td>
+            <td class="p-4">${s.dealer_id ? getDealerName(s.dealer_id) : '<span class="text-slate-400 italic">Chưa gán</span>'}</td>
+            <td class="p-4">${s.shipped_at ? s.shipped_at.substring(0, 10) : '-'}</td>
+            <td class="p-4">${s.activated_at ? formatDate(s.activated_at) : '-'}</td>
+            <td class="p-4 text-right">
+              ${s.status === 'in_stock' 
+                ? `<button onclick="openShipModal('${s.serial_no}')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-2.5 py-1.5 rounded-lg shadow transition">
+                    <i class="fa-solid fa-truck-fast mr-1"></i> Xuất kho
+                   </button>` 
+                : s.status === 'shipped'
+                ? `<button onclick="openActivateModal('${s.serial_no}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs px-2.5 py-1.5 rounded-lg shadow transition">
+                    <i class="fa-solid fa-bolt mr-1"></i> Kích hoạt
+                   </button>`
+                : `<span class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>Hoàn tất</span>`
+              }
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        showToast('Lỗi khi tải dữ liệu Admin', 'error');
+      }
+    }
+
+    function renderStatusTag(status) {
+      if (status === 'in_stock') {
+        return '<span class="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">in_stock</span>';
+      } else if (status === 'shipped') {
+        return '<span class="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">shipped</span>';
+      } else {
+        return '<span class="bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">activated</span>';
+      }
+    }
+
+    function getDealerName(dealerId) {
+      const d = cachedDealers.find(item => item.id === dealerId);
+      return d ? d.name : `Đại lý #${dealerId}`;
+    }
+
+    // FETCH HELPERS
+    async function fetchProductsList() {
+      try {
+        const res = await fetch('/products?size=100', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          cachedProducts = data.items;
+          document.getElementById('stat-products-count').textContent = data.total;
+          populateProductSelects();
+        }
+      } catch (e) {}
+    }
+
+    async function fetchDealersList() {
+      try {
+        const res = await fetch('/dealers?size=100', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          cachedDealers = data.items;
+          document.getElementById('stat-dealers-count').textContent = data.total;
+          populateDealerSelects();
+        }
+      } catch (e) {}
+    }
+
+    async function fetchCustomersList() {
+      try {
+        const res = await fetch('/customers?size=100', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          cachedCustomers = data.items;
+          populateCustomerSelects();
+        }
+      } catch (e) {}
+    }
+
+    function populateProductSelects() {
+      const opts = cachedProducts.map(p => `<option value="${p.id}">${p.code} - ${p.name} (${p.warranty_months} tháng BH)</option>`).join('');
+      document.getElementById('single-serial-product').innerHTML = opts;
+      document.getElementById('bulk-serial-product').innerHTML = opts;
+    }
+
+    function populateDealerSelects() {
+      const opts = cachedDealers.map(d => `<option value="${d.id}">${d.name} (${d.phone || 'Không có SĐT'})</option>`).join('');
+      document.getElementById('ship-dealer-select').innerHTML = opts;
+    }
+
+    function populateCustomerSelects() {
+      const opts = cachedCustomers.map(c => `<option value="${c.id}">${c.name} - ${c.phone || c.email || 'KH #' + c.id}</option>`).join('');
+      document.getElementById('act-customer-select').innerHTML = opts;
+    }
+
+    // MODAL CONTROLS
+    function openLoginModal() { document.getElementById('modal-login').classList.remove('hidden'); }
+    function closeLoginModal() { document.getElementById('modal-login').classList.add('hidden'); document.getElementById('login-error').classList.add('hidden'); }
+
+    function openActivateModal(serialNo) {
+      document.getElementById('act-modal-serial').textContent = serialNo;
+      document.getElementById('act-serial-input').value = serialNo;
+      fetchCustomersList();
+      document.getElementById('modal-activate').classList.remove('hidden');
+    }
+    function closeActivateModal() { document.getElementById('modal-activate').classList.add('hidden'); document.getElementById('act-error').classList.add('hidden'); }
+
+    function openShipModal(serialNo) {
+      document.getElementById('ship-modal-serial').textContent = serialNo;
+      document.getElementById('ship-serial-input').value = serialNo;
+      fetchDealersList();
+      document.getElementById('modal-ship').classList.remove('hidden');
+    }
+    function closeShipModal() { document.getElementById('modal-ship').classList.add('hidden'); document.getElementById('ship-error').classList.add('hidden'); }
+
+    function openCreateCustomerModal() { document.getElementById('modal-customer').classList.remove('hidden'); }
+    function closeCreateCustomerModal() { document.getElementById('modal-customer').classList.add('hidden'); }
+
+    function openCreateProductModal() { document.getElementById('modal-product').classList.remove('hidden'); }
+    function closeCreateProductModal() { document.getElementById('modal-product').classList.add('hidden'); }
+
+    function openCreateDealerModal() { document.getElementById('modal-dealer').classList.remove('hidden'); }
+    function closeCreateDealerModal() { document.getElementById('modal-dealer').classList.add('hidden'); }
+
+    function openCreateSerialModal() { fetchProductsList(); document.getElementById('modal-serial').classList.remove('hidden'); }
+    function closeCreateSerialModal() { document.getElementById('modal-serial').classList.add('hidden'); }
+
+    function openBulkSerialModal() { fetchProductsList(); document.getElementById('modal-bulk').classList.remove('hidden'); }
+    function closeBulkSerialModal() { document.getElementById('modal-bulk').classList.add('hidden'); }
+
+    // FORM HANDLERS
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      await performLogin(email, password);
+    }
+
+    async function quickLoginAs(role) {
+      if (role === 'admin') {
+        await performLogin('admin@example.com', 'AdminPassword123!');
+      } else {
+        await performLogin('dealer@example.com', 'DealerPassword123!');
+      }
+    }
+
+    async function performLogin(email, password) {
+      const errBox = document.getElementById('login-error');
+      errBox.classList.add('hidden');
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errBox.textContent = data.detail || 'Đăng nhập thất bại';
+          errBox.classList.remove('hidden');
+          return;
+        }
+
+        authToken = data.access_token;
+        localStorage.setItem('warranty_token', authToken);
+        await fetchCurrentUser();
+        updateAuthUI();
+        closeLoginModal();
+        showToast(`Đăng nhập thành công với vai trò ${currentUser.role.toUpperCase()}`);
+
+        if (currentUser.role === 'dealer') switchTab('dealer');
+        if (currentUser.role === 'admin') switchTab('admin');
+      } catch (e) {
+        errBox.textContent = 'Lỗi kết nối máy chủ';
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    async function handleShip(e) {
+      e.preventDefault();
+      const serialNo = document.getElementById('ship-serial-input').value;
+      const dealerId = parseInt(document.getElementById('ship-dealer-select').value);
+      const errBox = document.getElementById('ship-error');
+      errBox.classList.add('hidden');
+
+      try {
+        const res = await fetch(`/serials/${encodeURIComponent(serialNo)}/ship`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ dealer_id: dealerId })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errBox.textContent = data.detail || 'Xuất kho thất bại';
+          errBox.classList.remove('hidden');
+          return;
+        }
+        closeShipModal();
+        showToast(`Xuất kho thành công serial ${serialNo}`);
+        loadAdminData();
+      } catch (e) {
+        errBox.textContent = 'Lỗi mạng';
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    async function handleActivate(e) {
+      e.preventDefault();
+      const serialNo = document.getElementById('act-modal-serial').textContent;
+      const customerId = parseInt(document.getElementById('act-customer-select').value);
+      const dateVal = document.getElementById('act-date-input').value || null;
+      const errBox = document.getElementById('act-error');
+      errBox.classList.add('hidden');
+
+      try {
+        const res = await fetch(`/serials/${encodeURIComponent(serialNo)}/activate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ customer_id: customerId, activated_at: dateVal })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errBox.textContent = data.detail || 'Kích hoạt thất bại';
+          errBox.classList.remove('hidden');
+          return;
+        }
+        closeActivateModal();
+        showToast(`Kích hoạt thành công serial ${serialNo}`);
+        if (currentTab === 'dealer') loadDealerData();
+        if (currentTab === 'admin') loadAdminData();
+      } catch (e) {
+        errBox.textContent = 'Lỗi mạng';
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    async function handleCreateCustomer(e) {
+      e.preventDefault();
+      const name = document.getElementById('cust-name').value;
+      const phone = document.getElementById('cust-phone').value;
+      const email = document.getElementById('cust-email').value || null;
+      const address = document.getElementById('cust-address').value || null;
+
+      try {
+        const res = await fetch('/customers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ name, phone, email, address })
+        });
+        if (res.ok) {
+          closeCreateCustomerModal();
+          showToast('Thêm khách hàng thành công');
+          await fetchCustomersList();
+        } else {
+          const err = await res.json();
+          alert(err.detail || 'Lỗi thêm khách hàng');
+        }
+      } catch (e) {}
+    }
+
+    async function handleCreateProduct(e) {
+      e.preventDefault();
+      const code = document.getElementById('prod-code').value.trim();
+      const name = document.getElementById('prod-name').value.trim();
+      const warranty_months = parseInt(document.getElementById('prod-months').value);
+
+      try {
+        const res = await fetch('/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ code, name, warranty_months })
+        });
+        if (res.ok) {
+          closeCreateProductModal();
+          showToast(`Thêm sản phẩm ${code} thành công`);
+          loadAdminData();
+        } else {
+          const err = await res.json();
+          alert(err.detail || 'Lỗi thêm sản phẩm');
+        }
+      } catch (e) {}
+    }
+
+    async function handleCreateDealer(e) {
+      e.preventDefault();
+      const name = document.getElementById('dealer-name').value.trim();
+      const phone = document.getElementById('dealer-phone').value.trim() || null;
+      const address = document.getElementById('dealer-address').value.trim() || null;
+
+      try {
+        const res = await fetch('/dealers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ name, phone, address })
+        });
+        if (res.ok) {
+          closeCreateDealerModal();
+          showToast(`Thêm đại lý ${name} thành công`);
+          loadAdminData();
+        } else {
+          const err = await res.json();
+          alert(err.detail || 'Lỗi thêm đại lý');
+        }
+      } catch (e) {}
+    }
+
+    async function handleCreateSerial(e) {
+      e.preventDefault();
+      const product_id = parseInt(document.getElementById('single-serial-product').value);
+      const serial_no = document.getElementById('single-serial-no').value.trim();
+
+      try {
+        const res = await fetch('/serials', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ product_id, serial_no })
+        });
+        if (res.ok) {
+          closeCreateSerialModal();
+          showToast(`Tạo thành công serial ${serial_no}`);
+          loadAdminData();
+        } else {
+          const err = await res.json();
+          alert(err.detail || 'Lỗi tạo serial');
+        }
+      } catch (e) {}
+    }
+
+    async function handleBulkSerial(e) {
+      e.preventDefault();
+      const product_id = parseInt(document.getElementById('bulk-serial-product').value);
+      const prefix = document.getElementById('bulk-prefix').value.trim();
+      const start_no = parseInt(document.getElementById('bulk-start').value);
+      const end_no = parseInt(document.getElementById('bulk-end').value);
+      const padding_zeros = parseInt(document.getElementById('bulk-pad').value) || 0;
+
+      try {
+        const res = await fetch('/serials/bulk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ product_id, prefix, start_no, end_no, padding_zeros })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          closeBulkSerialModal();
+          showToast(`Đã tạo hàng loạt ${data.total_created} serials thành công!`);
+          loadAdminData();
+        } else {
+          alert(data.detail || 'Lỗi tạo hàng loạt');
+        }
+      } catch (e) {}
+    }
+  </script>
+</body>
+</html>
+
